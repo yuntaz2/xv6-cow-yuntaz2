@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Setup",
+      "setup": "",
+      "run": "sudo apt-get update; sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu gcc",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": null
+    },
+    {
+      "name": "Make",
+      "setup": "",
+      "run": "make",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": null
+    },
+    {
+      "name": "test simple",
+      "setup": "",
+      "run": "./grade-lab-cow \"simple\"",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 35
+    },
+    {
+      "name": "test three",
+      "setup": "",
+      "run": "./grade-lab-cow \"three\"",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 35
+    },
+    {
+      "name": "test file",
+      "setup": "",
+      "run": "./grade-lab-cow \"file\"",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 30
+    }
+  ]
+}
