@@ -23,6 +23,35 @@ struct {
   struct run *freelist;
 } kmem;
 
+int refPages[PAGECNT];
+
+int pageIndex (void *pa)
+{
+  if ((uint64)pa < KERNBASE)
+  {
+    panic("page index is illegal.");
+    return -1;
+  }
+  else
+    return ((uint64)pa - KERNBASE) / PGSIZE;
+}
+
+void inc (void *pa)
+{
+  acquire(&kmem.lock);
+  int index = pageIndex(pa);
+  refPages[index]++;
+  release(&kmem.lock);
+}
+
+void dec (void *pa)
+{
+  acquire(&kmem.lock);
+  int index = pageIndex(pa);
+  refPages[index]--;
+  release(&kmem.lock);
+}
+
 void
 kinit()
 {
@@ -46,20 +75,28 @@ freerange(void *pa_start, void *pa_end)
 void
 kfree(void *pa)
 {
-  struct run *r;
+  int index = pageIndex(pa);
+  if (refPages[index] > 0)
+  {
+    dec(pa);
+  }
+  if (refPages[index] == 0)
+  {
+    struct run *r;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
-    panic("kfree");
+    if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
+      panic("kfree");
 
-  // Fill with junk to catch dangling refs.
-  memset(pa, 1, PGSIZE);
+    // Fill with junk to catch dangling refs.
+    memset(pa, 1, PGSIZE);
 
-  r = (struct run*)pa;
+    r = (struct run*)pa;
 
-  acquire(&kmem.lock);
-  r->next = kmem.freelist;
-  kmem.freelist = r;
-  release(&kmem.lock);
+    acquire(&kmem.lock);
+    r->next = kmem.freelist;
+    kmem.freelist = r;
+    release(&kmem.lock);
+  }
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -77,6 +114,10 @@ kalloc(void)
   release(&kmem.lock);
 
   if(r)
+  {
     memset((char*)r, 5, PGSIZE); // fill with junk
+    inc(r);
+  }
+
   return (void*)r;
 }
